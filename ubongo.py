@@ -412,6 +412,7 @@ def generate_puzzle_with_mandatory_alt(
             "solutions_with_S": stats_S.solutions,                # >= 1
             "nodes_with_S": stats_S.nodes,
             "has_mandatory_alternative": True,
+            "alternative_solutions": stats_alt.solutions_detail,
             "nodes_with_mandatory_alt": stats_alt.nodes,
             "tier": tier,
             "attempts": attempt,
@@ -457,7 +458,8 @@ if __name__ == "__main__":
     if puzzle:
         print(f"Tier: {puzzle['tier']} | size: {puzzle['size']} | attempts: {puzzle['attempts']}")
         print("Constructive subset (no mandatory piece):", puzzle["subset_S"])
-        print("Has mandatory alternative:", puzzle["has_mandatory_alternative"])
+        print("Alternative solutions (w/ mandatory piece):", len(puzzle["alternative_solutions"]))
+        print("1st alternative solution (w/ mandatory piece):", [s for s, _, _ in puzzle["alternative_solutions"][0]])
         print("ASCII target shape:\n" + puzzle["ascii"])
     else:
         print("No puzzle found within attempts. Consider increasing attempts, size limits, or library size.")
