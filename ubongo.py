@@ -8,6 +8,7 @@ Created on Sun Aug 24 13:39:57 2025
 
 from dataclasses import dataclass
 from typing import FrozenSet, Tuple, List, Set, Optional, Dict
+from copy import deepcopy
 from textwrap import dedent
 import random
 
@@ -156,19 +157,31 @@ class SolveStats:
     def __init__(self):
         self.nodes = 0
         self.solutions = 0
+        # Each element is a list of placements for a solution. A placement is
+        # (piece name, orientation cells, offset)
+        self.solutions_detail: List[
+            List[Tuple[str, FrozenSet[Cell], Tuple[int, int]]]
+        ] = []
 
 def solve_cover(
     shape: FrozenSet[Cell],
     pieces: List[Polyomino],
     required: Set[str] = frozenset(),
     limit: int = 1,
-) -> Tuple[int, int]:
+) -> SolveStats:
     """
     Backtracking exact-cover style:
-    - Cover all cells of 'shape'.
-    - Each piece may be used at most once.
-    - Pieces listed in 'required' must be used at least once.
-    - Count up to 'limit' solutions; return (solutions_found, nodes_visited).
+    - Cover all cells of ``shape`` using the supplied ``pieces`` at most once.
+    - Pieces listed in ``required`` must be part of every accepted cover.
+    - Search stops after ``limit`` solutions are found (``limit`` > solutions
+      allows enumeration of all solutions).
+
+    Returns a :class:`SolveStats` instance containing:
+      * ``solutions`` – number of full covers found.
+      * ``nodes`` – number of placement attempts explored.
+      * ``solutions_detail`` – for each solution a list of placements
+        ``(piece name, orientation cells, offset)`` describing how each piece
+        was positioned.
     """
     remaining = set(shape)
     stats = SolveStats()
@@ -176,10 +189,19 @@ def solve_cover(
     name_to_idx = {p.name: i for i, p in enumerate(pieces)}
     required_idx = {name_to_idx[n] for n in required if n in name_to_idx}
 
-    def recurse(remaining_cells: Set[Cell], used_offsets: List[Optional[Tuple[int, int]]], used_required: Set[int]):
+    # Track placements of pieces in the current partial solution; index aligned
+    # with ``pieces`` list.
+    placements: List[Optional[Tuple[str, FrozenSet[Cell], Tuple[int, int]]]] = [
+        None
+    ] * len(pieces)
+
+    def recurse(remaining_cells: Set[Cell], used_required: Set[int]):
         if not remaining_cells:
             if required_idx.issubset(used_required):
                 stats.solutions += 1
+                stats.solutions_detail.append(
+                    deepcopy([p for p in placements if p is not None])
+                )
             return
         if stats.solutions >= limit:
             return
@@ -188,7 +210,7 @@ def solve_cover(
         pivot = min(remaining_cells, key=lambda c: (c[1], c[0]))
 
         # Try unused pieces; smaller area first can help
-        cand_idxs = [i for i, p in enumerate(pieces) if used_offsets[i] is None]
+        cand_idxs = [i for i, p in enumerate(pieces) if placements[i] is None]
         cand_idxs.sort(key=lambda i: len(pieces[i].base))
 
         for i in cand_idxs:
@@ -202,15 +224,15 @@ def solve_cover(
                     if not placed.issubset(remaining_cells):
                         continue
                     stats.nodes += 1
-                    used_offsets[i] = (ox, oy)
+                    placements[i] = (pieces[i].name, orient, (ox, oy))
                     used_req2 = used_required | ({i} if i in required_idx else set())
-                    recurse(remaining_cells - placed, used_offsets, used_req2)
-                    used_offsets[i] = None
+                    recurse(remaining_cells - placed, used_req2)
+                    placements[i] = None
                     if stats.solutions >= limit:
                         return
 
-    recurse(remaining, [None] * len(pieces), set())
-    return stats.solutions, stats.nodes
+    recurse(remaining, set())
+    return stats
 
 # ============================================================
 # Random connected union (hole-free) from a given subset
@@ -365,14 +387,14 @@ def generate_puzzle_with_mandatory_alt(
             continue
 
         # Solve once with subset S (measure difficulty)
-        sols_S, nodes_S = solve_cover(shape, subset, required=set(), limit=1)
-        if sols_S < 1:
+        stats_S = solve_cover(shape, subset, required=set(), limit=1)
+        if stats_S.solutions < 1:
             # Should not happen given constructive build, but keep guard
             continue
 
         # Verify the existence of an alternative solution that MUST include the mandatory piece
-        sols_alt, nodes_alt = solve_cover(shape, library, required={mandatory_piece}, limit=1)
-        if sols_alt < 1:
+        stats_alt = solve_cover(shape, library, required={mandatory_piece}, limit=1)
+        if stats_alt.solutions < 1:
             # Discard puzzles that do not admit a solution including the mandatory piece
             continue
 
@@ -381,16 +403,17 @@ def generate_puzzle_with_mandatory_alt(
         if shape_hole:
             continue
 
-        tier = tier_from_nodes(nodes_S, k, shape_hole)
+        tier = tier_from_nodes(stats_S.nodes, k, shape_hole)
 
         return {
             "shape": shape,
             "size": bbox(shape),
             "subset_S": [p.name for p in subset],      # constructive set (no mandatory piece)
-            "solutions_with_S": sols_S,                # >= 1
-            "nodes_with_S": nodes_S,
+            "solutions_with_S": stats_S.solutions,                # >= 1
+            "nodes_with_S": stats_S.nodes,
             "has_mandatory_alternative": True,
-            "nodes_with_mandatory_alt": nodes_alt,
+            "alternative_solutions": stats_alt.solutions_detail,
+            "nodes_with_mandatory_alt": stats_alt.nodes,
             "tier": tier,
             "attempts": attempt,
             "ascii": print_shape(shape),
@@ -435,7 +458,8 @@ if __name__ == "__main__":
     if puzzle:
         print(f"Tier: {puzzle['tier']} | size: {puzzle['size']} | attempts: {puzzle['attempts']}")
         print("Constructive subset (no mandatory piece):", puzzle["subset_S"])
-        print("Has mandatory alternative:", puzzle["has_mandatory_alternative"])
+        print("Alternative solutions (w/ mandatory piece):", len(puzzle["alternative_solutions"]))
+        print("1st alternative solution (w/ mandatory piece):", [s for s, _, _ in puzzle["alternative_solutions"][0]])
         print("ASCII target shape:\n" + puzzle["ascii"])
     else:
         print("No puzzle found within attempts. Consider increasing attempts, size limits, or library size.")
