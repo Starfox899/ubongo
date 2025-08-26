@@ -168,6 +168,7 @@ def solve_cover(
     pieces: List[Polyomino],
     required: Set[str] = frozenset(),
     limit: int = 1,
+    rng: Optional[random.Random] = None,
 ) -> SolveStats:
     """
     Backtracking exact-cover style:
@@ -185,6 +186,9 @@ def solve_cover(
     """
     remaining = set(shape)
     stats = SolveStats()
+    if rng is None:
+        rng = random
+
     piece_orients = [list(p.orientations) for p in pieces]
     name_to_idx = {p.name: i for i, p in enumerate(pieces)}
     required_idx = {name_to_idx[n] for n in required if n in name_to_idx}
@@ -215,7 +219,7 @@ def solve_cover(
 
         for i in cand_idxs:
             orients = piece_orients[i]
-            random.shuffle(orients)
+            rng.shuffle(orients)
             for orient in orients:
                 # Place such that some cell of the orient hits pivot
                 for (px, py) in orient:
@@ -387,13 +391,13 @@ def generate_puzzle_with_mandatory_alt(
             continue
 
         # Solve once with subset S (measure difficulty)
-        stats_S = solve_cover(shape, subset, required=set(), limit=1)
+        stats_S = solve_cover(shape, subset, required=set(), limit=1, rng=rng)
         if stats_S.solutions < 1:
             # Should not happen given constructive build, but keep guard
             continue
 
         # Verify the existence of an alternative solution that MUST include the mandatory piece
-        stats_alt = solve_cover(shape, library, required={mandatory_piece}, limit=1)
+        stats_alt = solve_cover(shape, library, required={mandatory_piece}, limit=1, rng=rng)
         if stats_alt.solutions < 1:
             # Discard puzzles that do not admit a solution including the mandatory piece
             continue
@@ -442,6 +446,14 @@ PIECES: List[Polyomino] = [
 ]
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate an Ubongo puzzle")
+    parser.add_argument(
+        "--seed", type=int, default=None, help="Seed for reproducible puzzle generation"
+    )
+    args = parser.parse_args()
+
     # Example: Build a puzzle that has a constructive solution with k pieces
     # (excluding the mandatory one), and also admits an alternative solution that
     # must include the mandatory piece "I3".
@@ -451,15 +463,23 @@ if __name__ == "__main__":
         max_w=8,
         max_h=6,
         mandatory_piece="I3",   # configurable at call-site
-        seed=42,
-        max_attempts=600
+        seed=args.seed,
+        max_attempts=600,
     )
 
     if puzzle:
         print(f"Tier: {puzzle['tier']} | size: {puzzle['size']} | attempts: {puzzle['attempts']}")
         print("Constructive subset (no mandatory piece):", puzzle["subset_S"])
-        print("Alternative solutions (w/ mandatory piece):", len(puzzle["alternative_solutions"]))
-        print("1st alternative solution (w/ mandatory piece):", [s for s, _, _ in puzzle["alternative_solutions"][0]])
+        print(
+            "Alternative solutions (w/ mandatory piece):",
+            len(puzzle["alternative_solutions"]),
+        )
+        print(
+            "1st alternative solution (w/ mandatory piece):",
+            [s for s, _, _ in puzzle["alternative_solutions"][0]],
+        )
         print("ASCII target shape:\n" + puzzle["ascii"])
     else:
-        print("No puzzle found within attempts. Consider increasing attempts, size limits, or library size.")
+        print(
+            "No puzzle found within attempts. Consider increasing attempts, size limits, or library size."
+        )

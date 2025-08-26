@@ -66,6 +66,18 @@ print(stats.solutions)  # -> 2
 
 This demonstrates how pieces are defined and used to cover a simple shape.
 
+## Command-line puzzle generation
+
+Running `python ubongo.py` will generate a sample puzzle using the built-in
+piece library.  You can supply a `--seed` argument to make puzzle generation
+reproducible:
+
+```bash
+python ubongo.py --seed 42
+```
+
+Using the same seed will always yield the same puzzle layout and statistics.
+
 ---
 
 This README is a draft and can be extended with more detailed usage examples and contributor guidelines.
