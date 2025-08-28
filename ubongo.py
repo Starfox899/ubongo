@@ -474,6 +474,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--seed", type=int, default=None, help="Seed for reproducible puzzle generation"
     )
+    parser.add_argument(
+        "--pieces",
+        type=int,
+        default=3,
+        help="Number of pieces to construct the puzzle with",
+    )
     args = parser.parse_args()
 
     # Example: Build a puzzle that has a constructive solution with k pieces
@@ -481,7 +487,7 @@ if __name__ == "__main__":
     # must include the mandatory piece "I3".
     puzzle = generate_puzzle_with_mandatory_alt(
         library=PIECES,
-        k=3,
+        k=args.pieces,
         max_w=8,
         max_h=6,
         mandatory_piece="I3",   # configurable at call-site
