@@ -122,6 +122,24 @@ def print_shape(cells: FrozenSet[Cell]) -> str:
         grid[y][x] = '#'
     return '\n'.join(''.join(row) for row in grid)
 
+
+def shape_circumference(cells: FrozenSet[Cell]) -> int:
+    """Return number of distinct non-shape neighbors (4-neighborhood)."""
+    neighbors: Set[Cell] = set()
+    cell_set = set(cells)
+    for c in cell_set:
+        for n in neighbors4(c):
+            if n not in cell_set:
+                neighbors.add(n)
+    return len(neighbors)
+
+
+def circumference_ratio(cells: FrozenSet[Cell]) -> float:
+    """Return circumference divided by the number of shape cells."""
+    if not cells:
+        return 0.0
+    return shape_circumference(cells) / len(cells)
+
 # ============================================================
 # Polyomino
 # ============================================================
@@ -408,10 +426,14 @@ def generate_puzzle_with_mandatory_alt(
             continue
 
         tier = tier_from_nodes(stats_S.nodes, k, shape_hole)
+        circ = shape_circumference(shape)
+        ratio = circumference_ratio(shape)
 
         return {
             "shape": shape,
             "size": bbox(shape),
+            "circumference": circ,
+            "circumference_ratio": ratio,
             "subset_S": [p.name for p in subset],      # constructive set (no mandatory piece)
             "solutions_with_S": stats_S.solutions,                # >= 1
             "nodes_with_S": stats_S.nodes,
@@ -468,7 +490,13 @@ if __name__ == "__main__":
     )
 
     if puzzle:
-        print(f"Tier: {puzzle['tier']} | size: {puzzle['size']} | attempts: {puzzle['attempts']}")
+        print(
+            f"Tier: {puzzle['tier']} | size: {puzzle['size']} | attempts: {puzzle['attempts']}"
+        )
+        print(
+            f"Circumference: {puzzle['circumference']} | "
+            f"Circumference ratio: {puzzle['circumference_ratio']:.2f}"
+        )
         print("Constructive subset (no mandatory piece):", puzzle["subset_S"])
         print(
             "Alternative solutions (w/ mandatory piece):",
