@@ -78,6 +78,18 @@ python ubongo.py --seed 42
 
 Using the same seed will always yield the same puzzle layout and statistics.
 
+## Circumference ratio experiment
+
+The repository includes `experiment.py` which samples 100 random puzzles with
+different seeds and plots a histogram of their circumference-to-area ratios.
+Run:
+
+```bash
+python experiment.py
+```
+
+`matplotlib` is required to display the histogram.
+
 ---
 
 This README is a draft and can be extended with more detailed usage examples and contributor guidelines.
