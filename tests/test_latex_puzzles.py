@@ -14,7 +14,7 @@ def test_dedup_and_annotations():
     assert tex.count("Hash:") == 2
 
     # Hash of square appears and pieces count taken from first occurrence
-    h_square = puzzle_hash(ascii_art="##\n##")
+    h_square = puzzle_hash("##\n##")
     assert f"Hash: {h_square}" in tex
     assert "Pieces: 3" in tex  # from first entry
 

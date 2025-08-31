@@ -48,7 +48,7 @@ def unique_puzzles(puzzles: Iterable[Dict]) -> List[Tuple[int, Dict]]:
     seen = set()
     uniq: List[Tuple[int, Dict]] = []
     for p in puzzles:
-        h = puzzle_hash(ascii_art=p["ascii"])
+        h = puzzle_hash(p["ascii"])
         if h in seen:
             continue
         seen.add(h)
