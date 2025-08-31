@@ -1,3 +1,4 @@
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 from ubongo import PIECES, generate_puzzle_with_mandatory_alt
@@ -30,13 +31,14 @@ def main():
     plt.tight_layout()
     plt.show()
 
-    # Show puzzles and their seed if they are in top 10% of circumference ratios
+    # Show puzzles and collect those in the top 10% of circumference ratios
     top_ratios = np.percentile(ratios, 10)
-    for i in range(len(puzzles)):
-        seed = puzzles[i][0]
-        puzzle = puzzles[i][1]
-        if puzzle["circumference_ratio"]<=top_ratios:
-            print(f"Puzzle found for seed {seed} with ratio {puzzle['circumference_ratio']}")
+    best: list[dict] = []
+    for seed, puzzle in puzzles:
+        if puzzle["circumference_ratio"] <= top_ratios:
+            print(
+                f"Puzzle found for seed {seed} with ratio {puzzle['circumference_ratio']}"
+            )
             print("Constructive subset (no mandatory piece):", puzzle["subset_S"])
             print(
                 "Alternative solutions (w/ mandatory piece):",
@@ -47,6 +49,11 @@ def main():
                 [s for s, _, _ in puzzle["alternative_solutions"][0]],
             )
             print("ASCII target shape:\n" + puzzle["ascii"])
+            best.append({"ascii": puzzle["ascii"], "subset_S": puzzle["subset_S"]})
+
+    # Persist selected puzzles for later printing
+    with open("puzzles.json", "w") as fh:
+        json.dump(best, fh, indent=2)
 
 if __name__ == "__main__":
     main()

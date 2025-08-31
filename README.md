@@ -88,7 +88,26 @@ Run:
 python experiment.py
 ```
 
+The script displays a histogram of circumference-to-area ratios and saves all
+puzzles whose ratio falls within the top 10\% to `puzzles.json`.  This file can
+then be fed to `print_puzzles.py` to produce printable sheets.
+
 `matplotlib` is required to display the histogram.
+
+## Generating printable puzzle sheets
+
+`print_puzzles.py` converts a JSON list of puzzles (as produced by
+`experiment.py` or `ubongo.py`) into a LaTeX document ready for printing.  The
+generated drawings use a TikZ grid where each square measures exactly 12.5 mm,
+matching the physical pieces.
+
+Duplicate boards are filtered using `puzzle_hash` and every puzzle is annotated
+with the number of pieces and its hash value.  Each puzzle is centred on its
+own line in the document to avoid LaTeX environment conflicts.
+
+```bash
+python print_puzzles.py puzzles.json puzzles.tex
+```
 
 ---
 

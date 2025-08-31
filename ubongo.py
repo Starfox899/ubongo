@@ -124,6 +124,16 @@ def print_shape(cells: FrozenSet[Cell]) -> str:
     return '\n'.join(''.join(row) for row in grid)
 
 
+def cells_to_ascii(cells: Iterable[Cell]) -> str:
+    """Convert a collection of cells to normalized ASCII art."""
+    fs = normalize(frozenset(cells))
+    w, h = bbox(fs)
+    grid = [['.' for _ in range(w)] for __ in range(h)]
+    for x, y in fs:
+        grid[y][x] = '#'
+    return '\n'.join(''.join(row) for row in grid)
+
+
 def shape_circumference(cells: FrozenSet[Cell]) -> int:
     """Return number of distinct non-shape neighbors (4-neighborhood)."""
     neighbors: Set[Cell] = set()
@@ -142,34 +152,23 @@ def circumference_ratio(cells: FrozenSet[Cell]) -> float:
     return shape_circumference(cells) / len(cells)
 
 
-def puzzle_hash(
-    cells: Iterable[Cell] | None = None,
-    ascii_art: str | None = None,
-) -> int:
+def puzzle_hash(ascii_art: str) -> int:
     """Return a stable integer hash for the given puzzle shape.
 
     The hash is computed from the normalized coordinates of all filled
-    cells.  Equivalent puzzles – i.e. shapes that are mere translations of
-    each other – therefore yield identical hashes.
-
-    Exactly one of ``cells`` or ``ascii_art`` must be supplied.
-    ``ascii_art`` uses the same ``'#'`` filled-cell convention as
-    :func:`parse_polyomino`.
+    cells parsed from ``ascii_art`` (``'#'`` denotes filled cells).  Equivalent
+    puzzles – i.e. shapes that are mere translations of each other –
+    therefore yield identical hashes.
     """
 
-    if (cells is None) == (ascii_art is None):  # both or neither provided
-        raise ValueError("Provide either cells or ascii_art")
+    lines = dedent(ascii_art).splitlines()
+    cells: Set[Cell] = set()
+    for y, line in enumerate(lines):
+        for x, ch in enumerate(line):
+            if ch == '#':
+                cells.add((x, y))
 
-    if ascii_art is not None:
-        lines = dedent(ascii_art).splitlines()
-        parsed: Set[Cell] = set()
-        for y, line in enumerate(lines):
-            for x, ch in enumerate(line):
-                if ch == '#':
-                    parsed.add((x, y))
-        cells = parsed
-
-    normalized = normalize(frozenset(cells))  # type: ignore[arg-type]
+    normalized = normalize(frozenset(cells))
     serial = ','.join(f"{x}:{y}" for x, y in sorted(normalized))
     digest = hashlib.blake2b(serial.encode('utf-8'), digest_size=16).digest()
     return int.from_bytes(digest, 'big')
