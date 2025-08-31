@@ -88,6 +88,10 @@ Run:
 python experiment.py
 ```
 
+The script displays a histogram of circumference-to-area ratios and saves all
+puzzles whose ratio falls within the top 10\% to `puzzles.json`.  This file can
+then be fed to `print_puzzles.py` to produce printable sheets.
+
 `matplotlib` is required to display the histogram.
 
 ## Generating printable puzzle sheets
