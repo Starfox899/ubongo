@@ -7,10 +7,11 @@ Created on Sun Aug 24 13:39:57 2025
 """
 
 from dataclasses import dataclass
-from typing import FrozenSet, Tuple, List, Set, Optional, Dict
+from typing import FrozenSet, Tuple, List, Set, Optional, Dict, Iterable
 from copy import deepcopy
 from textwrap import dedent
 import random
+import hashlib
 
 # ============================================================
 # Geometry & Utilities
@@ -139,6 +140,39 @@ def circumference_ratio(cells: FrozenSet[Cell]) -> float:
     if not cells:
         return 0.0
     return shape_circumference(cells) / len(cells)
+
+
+def puzzle_hash(
+    cells: Iterable[Cell] | None = None,
+    ascii_art: str | None = None,
+) -> int:
+    """Return a stable integer hash for the given puzzle shape.
+
+    The hash is computed from the normalized coordinates of all filled
+    cells.  Equivalent puzzles – i.e. shapes that are mere translations of
+    each other – therefore yield identical hashes.
+
+    Exactly one of ``cells`` or ``ascii_art`` must be supplied.
+    ``ascii_art`` uses the same ``'#'`` filled-cell convention as
+    :func:`parse_polyomino`.
+    """
+
+    if (cells is None) == (ascii_art is None):  # both or neither provided
+        raise ValueError("Provide either cells or ascii_art")
+
+    if ascii_art is not None:
+        lines = dedent(ascii_art).splitlines()
+        parsed: Set[Cell] = set()
+        for y, line in enumerate(lines):
+            for x, ch in enumerate(line):
+                if ch == '#':
+                    parsed.add((x, y))
+        cells = parsed
+
+    normalized = normalize(frozenset(cells))  # type: ignore[arg-type]
+    serial = ','.join(f"{x}:{y}" for x, y in sorted(normalized))
+    digest = hashlib.blake2b(serial.encode('utf-8'), digest_size=16).digest()
+    return int.from_bytes(digest, 'big')
 
 # ============================================================
 # Polyomino
