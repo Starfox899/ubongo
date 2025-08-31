@@ -102,8 +102,8 @@ generated drawings use a TikZ grid where each square measures exactly 12.5 mm,
 matching the physical pieces.
 
 Duplicate boards are filtered using `puzzle_hash` and every puzzle is annotated
-with the number of pieces and its hash value.  The script arranges up to four
-puzzles per A4 page.
+with the number of pieces and its hash value.  Each puzzle is centred on its
+own line in the document to avoid LaTeX environment conflicts.
 
 ```bash
 python print_puzzles.py puzzles.json puzzles.tex

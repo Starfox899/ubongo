@@ -20,3 +20,7 @@ def test_dedup_and_annotations():
 
     # Ensure scaling is correct
     assert "x=12.5mm" in tex
+
+    # No tabular/minipage layout helpers should remain
+    assert "\\begin{tabular}" not in tex
+    assert "\\begin{minipage}" not in tex

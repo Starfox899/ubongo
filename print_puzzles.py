@@ -63,10 +63,10 @@ def puzzles_to_latex(puzzles: Iterable[Dict]) -> str:
         pieces = len(p.get("subset_S", []))
         tikz = ascii_to_tikz(p["ascii"])
         entry = (
-            "\\begin{minipage}{0.48\\textwidth}\\centering\n"
+            "\\begin{center}\n"
             f"Pieces: {pieces} -- Hash: {h}\\\\[0.5ex]\n"
             f"{tikz}\n"
-            "\\end{minipage}"
+            "\\end{center}"
         )
         entries.append(entry)
 
@@ -77,22 +77,7 @@ def puzzles_to_latex(puzzles: Iterable[Dict]) -> str:
         "\\begin{document}",
     ]
 
-    for i in range(0, len(entries), 4):
-        group = entries[i : i + 4]
-        doc.append("\\begin{center}\\begin{tabular}{cc}")
-        for r in range(2):
-            row_cells = []
-            for c in range(2):
-                idx = r * 2 + c
-                if idx < len(group):
-                    row_cells.append(group[idx])
-                else:
-                    row_cells.append("")
-            doc.append(" & ".join(row_cells) + " \\ ")
-        doc.append("\\end{tabular}\\end{center}")
-        if i + 4 < len(entries):
-            doc.append("\\newpage")
-
+    doc.extend(entries)
     doc.append("\\end{document}")
     return "\n".join(doc)
 
