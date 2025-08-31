@@ -17,3 +17,22 @@ def test_different_puzzles_different_hashes():
     h_square = puzzle_hash("##\n##")
     h_lshape = puzzle_hash("#.\n##")
     assert h_square != h_lshape
+
+
+def mirror_horizontal(ascii_art: str) -> str:
+    """Return the puzzle mirrored along the vertical axis."""
+    return "\n".join(line[::-1] for line in ascii_art.splitlines())
+
+
+def mirror_vertical(ascii_art: str) -> str:
+    """Return the puzzle mirrored along the horizontal axis."""
+    return "\n".join(reversed(ascii_art.splitlines()))
+
+
+def test_puzzle_hash_mirror_invariance():
+    puzzle = "#.....\n##....\n.###..\n...###"
+    ph = puzzle_hash(puzzle)
+    phh = puzzle_hash(mirror_horizontal(puzzle))
+    phv = puzzle_hash(mirror_vertical(puzzle))
+
+    assert ph == phh == phv
