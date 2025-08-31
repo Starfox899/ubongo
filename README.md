@@ -90,6 +90,21 @@ python experiment.py
 
 `matplotlib` is required to display the histogram.
 
+## Generating printable puzzle sheets
+
+`print_puzzles.py` converts a JSON list of puzzles (as produced by
+`experiment.py` or `ubongo.py`) into a LaTeX document ready for printing.  The
+generated drawings use a TikZ grid where each square measures exactly 12.5 mm,
+matching the physical pieces.
+
+Duplicate boards are filtered using `puzzle_hash` and every puzzle is annotated
+with the number of pieces and its hash value.  The script arranges up to four
+puzzles per A4 page.
+
+```bash
+python print_puzzles.py puzzles.json puzzles.tex
+```
+
 ---
 
 This README is a draft and can be extended with more detailed usage examples and contributor guidelines.
