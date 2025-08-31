@@ -156,8 +156,8 @@ def puzzle_hash(ascii_art: str) -> int:
     """Return a stable integer hash for the given puzzle shape.
 
     The hash is computed from the normalized coordinates of all filled
-    cells parsed from ``ascii_art`` (``'#'`` denotes filled cells).  Equivalent
-    puzzles – i.e. shapes that are mere translations of each other –
+    cells parsed from ``ascii_art`` (``'#'`` denotes filled cells).  Shapes
+    that are mere translations, rotations, or reflections of each other
     therefore yield identical hashes.
     """
 
@@ -169,7 +169,11 @@ def puzzle_hash(ascii_art: str) -> int:
                 cells.add((x, y))
 
     normalized = normalize(frozenset(cells))
-    serial = ','.join(f"{x}:{y}" for x, y in sorted(normalized))
+
+    variants = [tuple(sorted(v)) for v in dihedral_orientations(normalized)]
+    canonical = min(variants)
+
+    serial = ','.join(f"{x}:{y}" for x, y in canonical)
     digest = hashlib.blake2b(serial.encode('utf-8'), digest_size=16).digest()
     return int.from_bytes(digest, 'big')
 
