@@ -37,7 +37,7 @@ def ascii_to_tikz(ascii_art: str) -> str:
             if ch == '#':
                 yy = h - y - 1
                 tikz.append(
-                    f"\\draw[thick] ({x},{yy}) rectangle ({x+1},{yy+1});"
+                    f"\\filldraw[fill=gray!15, draw=black, thick] ({x},{yy}) rectangle ({x+1},{yy+1});"
                 )
     tikz.append("\\end{tikzpicture}")
     return "\n".join(tikz)
@@ -73,6 +73,7 @@ def puzzles_to_latex(puzzles: Iterable[Dict]) -> str:
     doc: List[str] = [
         "\\documentclass[a4paper]{article}",
         "\\usepackage{tikz}",
+        "\\usepackage{xcolor}",
         "\\usepackage[margin=1cm]{geometry}",
         "\\begin{document}",
     ]
