@@ -7,16 +7,16 @@ from ubongo import PIECES, generate_puzzle_with_mandatory_alt
 def main():
     ratios = []
     puzzles = []
-    for seed in range(100):
+    for seed in range(500):
         print(f"Probing puzzle generation for seed {seed}")
         puzzle = generate_puzzle_with_mandatory_alt(
             library=PIECES,
             k=5,
-            max_w=8,
-            max_h=6,
+            max_w=6,
+            max_h=4,
             mandatory_piece="I3",
             seed=seed,
-            max_attempts=600,
+            max_attempts=1000,
         )
         if puzzle is not None:
             ratios.append(puzzle["circumference_ratio"])
@@ -31,8 +31,8 @@ def main():
     plt.tight_layout()
     plt.show()
 
-    # Show puzzles and collect those in the top 10% of circumference ratios
-    top_ratios = np.percentile(ratios, 10)
+    # Show puzzles and collect those in the top X% of circumference ratios
+    top_ratios = np.percentile(ratios, 100)
     best: list[dict] = []
     for seed, puzzle in puzzles:
         if puzzle["circumference_ratio"] <= top_ratios:
