@@ -497,6 +497,7 @@ PIECES: List[Polyomino] = [
     parse_polyomino("S4", ".##\n##."),
     parse_polyomino("T5", "####\n.#.."),
     parse_polyomino("L5", "#..\n#..\n#..\n##."),
+    parse_polyomino("S5", "##..\n.###"),
     parse_polyomino("P5", "##\n##\n#."),
     # Add more as needed:
     # parse_polyomino("Z4", "##.\n.##"),
