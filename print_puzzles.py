@@ -21,7 +21,7 @@ from typing import Iterable, List, Dict, Tuple
 
 from ubongo import puzzle_hash
 
-CELL_MM = 12.5  # millimetres per cell when rendered
+CELL_MM = 13.0  # millimetres per cell when rendered
 
 
 def ascii_to_tikz(ascii_art: str) -> str:
@@ -67,13 +67,14 @@ def puzzles_to_latex(puzzles: Iterable[Dict]) -> str:
             f"Pieces: {pieces} -- Hash: {h}\\\\[0.5ex]\n"
             f"{tikz}\n"
             "\\end{center}"
+            "\\vspace{0.5cm}"
         )
         entries.append(entry)
 
     doc: List[str] = [
         "\\documentclass[a4paper]{article}",
         "\\usepackage{tikz}",
-        "\\usepackage[margin=1cm]{geometry}",
+        "\\usepackage[margin=1.5cm]{geometry}",
         "\\begin{document}",
     ]
 
